@@ -1,30 +1,63 @@
-## Local setup
+# Local Setup
 
-Requirements:
-- Python v14
-- Docker + Docker Compose
-- uv (Python project manager)
-- psql CLI (`brew install postgresql`)
+## Requirements
 
+-   **Python v14**
 
+-   **Docker + Docker Compose**
+
+-   **uv** (Python project manager)
+
+-   **psql CLI**\
+    Install with:
+
+    ``` bash
+    brew install postgresql
+    ```
+
+------------------------------------------------------------------------
+
+## Setup Instructions
+
+### 1. Clone the repository
+
+``` bash
 git clone <repo>
 cd bank-system
+```
 
-1. Configure environment
+### 2. Configure environment variables
+
+``` bash
 cp .env.example .env
+```
 
+### 3. Start PostgreSQL
 
-2. Start PostgreSQL
+``` bash
 make db-up
+```
 
-3. Run migrations
+### 4. Run database migrations
+
+``` bash
 make db-migrate
+```
 
-3. Install dependencies
+### 5. Install dependencies
+
+``` bash
 uv sync
+```
 
-4. Run the API
+### 6. Run the API
+
+``` bash
 uv run uvicorn bank_system.main:app --reload
+```
 
+------------------------------------------------------------------------
 
-API docs: http://localhost:8000/docs
+## API Documentation
+
+http://localhost:8000/docs
