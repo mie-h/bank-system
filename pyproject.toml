@@ -5,6 +5,101 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "asyncpg>=0.30.0",
+    "asyncpg-stubs>=0.30.2",
     "fastapi>=0.121.3",
+    "pydantic-settings>=2.12.0",
     "uvicorn[standard]>=0.38.0",
 ]
+
+[tool.ruff]
+target-version = "py314"
+src = [ "src" ]
+fix = true
+format.docstring-code-format = true
+lint.select = [ "ALL" ]
+lint.ignore = [
+  "ANN201", # Return type can be inferred. No need to do anything
+  "ANN202", # Return type can be inferred. No need to do anything
+  "ANN204", # Return type can be inferred. No need to do anything
+  "ANN205", # Return type can be inferred. No need to do anything
+  "ANN206", # Return type can be inferred. No need to do anything
+  "COM812", # Conflicts with formatter
+  "D105",   # Magic methods are generally documented at the source
+  "D107",   # Initializer docs are obvious much of the time
+  "FIX002", # TODO comments are used consistently
+  "ISC001", # Conflicts with formatter
+  "S101",   # Asserts are used for type hinting
+  "S603",   # Prone to false positive. Not that worth having
+  "TC006",  # Don't care about using strings for casts
+  "TD003",  # Not every TODO needs a link
+  "TRY003", # Alerts on common errors
+]
+lint.per-file-ignores."__init__.py" = [
+  "D", # No docs needed
+]
+lint.per-file-ignores."__main__.py" = [
+  "D", # No docs needed
+]
+lint.per-file-ignores."scripts/**/*.py" = [
+  "D", # No docs needed
+]
+lint.per-file-ignores."src/**/*.py" = [
+  "PT", # Don't need pytest checks in source code
+]
+lint.per-file-ignores."tests/**/conftest.py" = [
+  "D",      # No docs needed
+  "INP001", # Tests don't care about implicit namespaces
+]
+lint.per-file-ignores."tests/**/test_*.py" = [
+  "D",      # No docs needed
+  "INP001", # Tests don't care about implicit namespaces
+]
+lint.flake8-bugbear.extend-immutable-calls = [
+  "simple_parsing.field",
+  "simple_parsing.subgroups",
+]
+lint.flake8-builtins.ignorelist = [ "id", "hash" ]
+lint.flake8-pytest-style.fixture-parentheses = false
+lint.flake8-pytest-style.mark-parentheses = false
+lint.pydocstyle.convention = "google"
+lint.pydocstyle.ignore-decorators = [ "typing.overload", "typing.overrides" ]
+lint.logger-objects = [ "loguru.logger" ]
+
+[tool.pytest.ini_options]
+addopts = [ "--import-mode=importlib", "--strict-markers" ]
+filterwarnings = [ "error" ]
+markers = [  ]
+pythonpath = "src tests"
+
+[tool.coverage.report]
+exclude_also = [ "if TYPE_CHECKING:" ]
+
+[tool.pyright]
+exclude = [
+  ".venv",
+]
+executionEnvironments = [
+  { extraPaths = [
+    "src",
+    "tests",
+  ], root = "tests" },
+  { root = "src" },
+]
+pythonVersion = "3.14"
+reportUnnecessaryTypeIgnoreComment = true
+reportImplicitStringConcatenation = false
+strict = [ "src/**", "tests/**" ]
+
+[tool.sqlfluff.core]
+dialect = "postgres"
+[tool.sqlfluff.rules.capitalisation.keywords]
+capitalisation_policy = "upper"
+[tool.sqlfluff.rules.capitalisation.identifiers]
+extended_capitalisation_policy = "lower"
+[tool.sqlfluff.rules.capitalisation.functions]
+extended_capitalisation_policy = "lower"
+[tool.sqlfluff.rules.capitalisation.literals]
+capitalisation_policy = "upper"
+[tool.sqlfluff.rules.capitalisation.types]
+extended_capitalisation_policy = "lower"
