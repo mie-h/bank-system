@@ -69,6 +69,19 @@ http://localhost:8000/docs
 
 
 ### 8. Run tests
+Install test dependencies
 ``` bash
+uv sync --group test
+```
+
+Run tests
+``` bash
+# All tests
 pytest
+
+# Specific test file
+pytest tests/test_transactions.py
+
+# Specific test
+pytest tests/test_transactions.py::test__create_transfer__success
 ```

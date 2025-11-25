@@ -6,6 +6,7 @@ from typing import Annotated
 import asyncpg
 from asyncpg import Connection
 from fastapi import APIRouter, Depends, HTTPException, status
+from loguru import logger
 from pydantic import BaseModel
 
 from bank_system.core.auth import register_user, verify_credentials
@@ -27,17 +28,14 @@ async def register(
 ) -> None:
     """Register a new user with username and password stored in memory."""
     try:
-        row = await conn.fetchrow(
+        _ = await conn.fetchrow(
             "INSERT INTO users (username) VALUES ($1) RETURNING id",
             request.username,
         )
-    except asyncpg.UniqueViolationError as err:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail="Username already exists",
-        ) from err
-
-    assert row is not None
+    except asyncpg.UniqueViolationError:
+        logger.warning(
+            "Username already exists. Reregistering user {}", request.username
+        )
 
     try:
         register_user(request.username, request.password)

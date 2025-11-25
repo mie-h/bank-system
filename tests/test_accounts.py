@@ -114,21 +114,19 @@ async def test__get_account__unauthenticated(
     assert get_response.status_code == HTTPStatus.UNAUTHORIZED
 
 
-async def test__get_accounts__success(
+async def test__get_accounts__gets_multiple(
     client: AsyncClient,
 ) -> None:
-    # Create two accounts
-    response1 = await client.post("/accounts/")
-    assert response1.status_code == HTTPStatus.CREATED
-    response2 = await client.post("/accounts/")
-    assert response2.status_code == HTTPStatus.CREATED
+    num_accounts = 2
+    for _ in range(num_accounts):
+        _ = await client.post("/accounts/")
 
-    # Retrieve all accounts
     get_response = await client.get("/accounts/")
+
     assert get_response.status_code == HTTPStatus.OK
     data = get_response.json()
     assert isinstance(data, list)
-    assert len(data) >= 2  # At least the two we just created
+    assert len(data) >= num_accounts  # At least the two we just created
 
 
 async def test__get_accounts__unauthenticated(

@@ -22,8 +22,15 @@ router = APIRouter(
 AccountId = NewType("AccountId", int)
 
 
-class CreateTransactionRequest(BaseModel):
-    """Request model for creating deposit or withdrawal transaction."""
+class CreateDepositRequest(BaseModel):
+    """Request model for creating deposit transaction."""
+
+    account_id: AccountId
+    amount: Annotated[Decimal, Gt(0)]
+
+
+class CreateWithdrawalRequest(BaseModel):
+    """Request model for creating withdrawal transaction."""
 
     account_id: AccountId
     amount: Annotated[Decimal, Gt(0)]
@@ -46,32 +53,45 @@ class CreateTransferRequest(BaseModel):
         return to
 
 
-class _TransferRecord(TypedDict, total=False):
+class _DepositRecord(TypedDict):
+    to_account_id: AccountId
+    to_account_balance: Decimal
+
+
+class _WithdrawalRecord(TypedDict):
+    from_account_id: AccountId
+    from_account_balance: Decimal
+
+
+class _TransferRecord(TypedDict):
     from_account_id: AccountId | None
     from_account_balance: Decimal | None
     to_account_id: AccountId | None
-    to_account_balance: Decimal | None
 
 
 class Transaction(BaseModel):
     """Model representing a transaction."""
 
-    from_account_id: AccountId | None
-    to_account_id: AccountId | None
+    from_account_id: Annotated[
+        AccountId | None, Field(alias="from", exclude_if=lambda x: x is None)
+    ]
+    to_account_id: Annotated[
+        AccountId | None, Field(alias="to", exclude_if=lambda x: x is None)
+    ]
     amount: Decimal
     created_at: datetime
 
 
 @router.post(path="/deposit", status_code=HTTPStatus.CREATED)
 async def create_deposit(
-    payload: CreateTransactionRequest,
+    request: CreateDepositRequest,
     username: Annotated[str, Depends(verify_credentials)],
     conn: Annotated[Connection, Depends(get_conn)],
 ) -> None:
     """Create a deposit transaction for an account."""
     async with conn.transaction():
         record = cast(
-            _TransferRecord | None,
+            _DepositRecord | None,
             await conn.fetchrow(
                 """
                 WITH check_to_account AS (
@@ -96,8 +116,8 @@ async def create_deposit(
                 FROM deposit
                 """,
                 None,
-                payload.account_id,
-                payload.amount,
+                request.account_id,
+                request.amount,
                 username,
             ),
         )
@@ -109,14 +129,14 @@ async def create_deposit(
 
 @router.post(path="/withdrawal", status_code=HTTPStatus.CREATED)
 async def create_withdrawal(
-    request: CreateTransactionRequest,
+    request: CreateWithdrawalRequest,
     username: Annotated[str, Depends(verify_credentials)],
     conn: Annotated[Connection, Depends(get_conn)],
 ) -> None:
     """Create a withdrawal transaction for an account."""
     async with conn.transaction():
         record = cast(
-            _TransferRecord | None,
+            _WithdrawalRecord | None,
             await conn.fetchrow(
                 """
                 WITH from_account_check AS (
@@ -152,8 +172,7 @@ async def create_withdrawal(
                 status_code=HTTPStatus.NOT_FOUND, detail="Account not found"
             )
 
-        from_balance = record.get("from_account_balance")
-        if from_balance is not None and from_balance < 0:
+        if record["from_account_balance"] < 0:
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
                 detail="Insufficient funds in this account",
@@ -248,8 +267,8 @@ async def get_transactions_by_account(
     records = await conn.fetch(
         """
         SELECT
-            from_account_id,
-            to_account_id,
+            from_account_id AS from,
+            to_account_id AS to,
             amount,
             created_at
         FROM transactions
@@ -271,12 +290,12 @@ async def get_transactions_by_account(
             int | None,
             await conn.fetchval(
                 """
-            SELECT 1
-            FROM accounts AS a
-            JOIN users AS u ON a.user_id = u.id
-            WHERE a.id = $1
-            AND u.username = $2
-            """,
+                SELECT 1
+                FROM accounts AS a
+                JOIN users AS u ON a.user_id = u.id
+                WHERE a.id = $1
+                AND u.username = $2
+                """,
                 account_id,
                 username,
             ),
