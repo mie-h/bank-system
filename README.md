@@ -50,10 +50,15 @@ make db-migrate
 uv sync
 ```
 
-### 6. Run the API
+### 6. Install the app
+```bash
+uv pip install -e .
+```
+
+### 7. Run the API
 
 ``` bash
-uv run uvicorn bank_system.main:app --reload
+make api
 ```
 
 ------------------------------------------------------------------------
@@ -61,3 +66,9 @@ uv run uvicorn bank_system.main:app --reload
 ## API Documentation
 
 http://localhost:8000/docs
+
+
+### 8. Run tests
+``` bash
+pytest
+```

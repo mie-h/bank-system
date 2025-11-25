@@ -13,6 +13,3 @@ class Settings(BaseSettings):
         env_file=".env",
         env_prefix="BANK_",
     )
-
-
-settings = Settings()

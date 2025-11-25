@@ -1,13 +1,13 @@
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username text UNIQUE NOT NULL,
+    created_at timestamptz DEFAULT current_timestamp
 
 );
 
 CREATE TABLE accounts (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id),
-    balance DECIMAL(15, 2) DEFAULT 0.00,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id int REFERENCES users (id),
+    balance decimal(15, 2) DEFAULT 0.00,
+    created_at timestamptz DEFAULT current_timestamp
 );

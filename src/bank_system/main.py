@@ -7,10 +7,12 @@ all API routers for users, accounts, and transactions.
 from fastapi import FastAPI
 
 from bank_system.api.accounts import router as accounts_router
+from bank_system.api.auth import router as auth_router
 from bank_system.api.transactions import router as transactions_router
 from bank_system.api.users import router as user_router
+from bank_system.db import lifespan
 
-app = FastAPI()
+app = FastAPI(redirect_slashes=False, lifespan=lifespan)
 
 
 @app.get("/health")
@@ -19,6 +21,7 @@ def health():
     return {"ok": True}
 
 
+app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(accounts_router)
 app.include_router(transactions_router)
